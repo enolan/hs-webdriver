@@ -74,7 +74,14 @@ mkRequest meth wdPath args = do
                        ++ [ (hAccept, "application/json;charset=UTF-8")
                           , (hContentType, "application/json;charset=UTF-8") ]
     , method = meth 
+    -- Before http-client-0.5.0, exceptions were thrown by default for 500 status
+    -- codes and failed redirects. This prevents that behavior. It's unnecessary
+    -- on later versions.
+#if !MIN_VERSION_http_client(0,5,0)
     , checkStatus = \_ _ _ -> Nothing }
+#else
+    }
+#endif
 
 -- |Sends an HTTP request to the remote WebDriver server
 sendHTTPRequest :: (WDSessionStateIO s) => Request -> s (Either SomeException (Response ByteString))
